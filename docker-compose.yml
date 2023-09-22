@@ -1,0 +1,40 @@
+version: '3'
+
+services:
+  webgis-proxy:
+    image: nginx
+    volumes:
+      - './proxy/proxy.conf:/etc/nginx/conf.d/default.conf'
+    ports:
+      - 105:80
+
+  webgis-frontend:
+    image: gente/webgis-cmd-frontend:latest
+    container_name: webgis-frontend-cmd
+    hostname: webgis-frontend
+    labels:
+      - "com.centurylinklabs.watchtower.scope=webgis.cmd"
+
+  webgis-backend:
+    image: gente/webgis-cmd-backend:latest
+    container_name: webgis-backend-cmd
+    hostname: webgis-backend
+    environment:
+      - PG_DATABASE=
+      - PG_USER=
+      - PG_HOST=200.235.135.49
+      - PG_PASSWORD=
+      - PG_PORT=5432
+      - QGIS_SERVER_URL=http://qgis.cmd.genteufv.com.br/
+    labels:
+      - "com.centurylinklabs.watchtower.scope=webgis.cmd"
+
+  webgis-watchtower:
+    image: containrrr/watchtower
+    container_name: webgis-watchtower-cmd
+    volumes:
+      - //var/run/docker.sock:/var/run/docker.sock
+    command: --interval 300 webgis-frontend-cmd webgis-backend-cmd --scope webgis.cmd
+    labels:
+      - "com.centurylinklabs.watchtower.scope=webgis.cmd"
+#-
